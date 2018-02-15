@@ -6,7 +6,7 @@ import 'rxjs/add/observable/forkJoin';
 
 import { StockInventoryService } from '../../services/stock-inventory.service';
 
-import { Product } from '../../models/product.interface';
+import { Product, Item } from '../../models/product.interface';
 
 @Component({
   selector: 'stock-inventory',
@@ -27,8 +27,13 @@ import { Product } from '../../models/product.interface';
 
         <stock-products
           [parent]="form"
+          [map]="productMap"
           (removed)="removeStock($event)">
         </stock-products>
+
+        <div class="stock-inventory__price">
+          Total: {{ total | currency:'USD':true }}
+        </div>
 
         <div class="stock-inventory__buttons">
           <button
@@ -45,6 +50,10 @@ import { Product } from '../../models/product.interface';
 })
 export class StockInventoryComponent implements OnInit {
   products: Product[];
+
+  total: number;
+
+  productMap: Map<number, Product>;
 
   form = this.fb.group({
     store: this.fb.group({
@@ -66,7 +75,23 @@ export class StockInventoryComponent implements OnInit {
 
     Observable
       .forkJoin(cart, products)
-      .subscribe(data => console.log(data));
+      .subscribe(([cart, products]: [Item[], Product[]]) => {
+        const myMap = products
+          .map<[number, Product]>(product => [product.id, product] )
+
+        this.productMap = new Map<number, Product>(myMap);
+        this.products = products;
+        cart.forEach(item => this.addStock(item))
+
+        this.calculateTotal(this.form.get('stock').value)
+        this.form.get('stock')
+          .valueChanges.subscribe(value => this.calculateTotal(value))
+      });
+  }
+
+  calculateTotal(value: Item[]) {
+    const total = value.reduce((prev, next) => prev + (next.quantity * this.productMap.get(next.product_id).price), 0)
+    this.total = total;
   }
 
   createStock(stock) {
