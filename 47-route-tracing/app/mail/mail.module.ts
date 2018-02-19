@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 
 import { MailFolderResolve } from './containers/mail-folder/mail-folder.resolve';
+import { MailViewResolve } from './components/mail-view/mail-view.resolve';
 import { MailService } from './mail.service';
 
 import { MailFolderComponent } from './containers/mail-folder/mail-folder.component';
 import { MailItemComponent } from './components/mail-item/mail-item.component';
 import { MailAppComponent } from './components/mail-app/mail-app.component';
+import { MailViewComponent } from './components/mail-view/mail-view.component';
 
 export const ROUTES: Routes = [
   {
@@ -15,6 +17,14 @@ export const ROUTES: Routes = [
     component: MailFolderComponent,
     resolve: {
       messages: MailFolderResolve
+    }
+  },
+  {
+    path: 'message/:id',
+    component: MailViewComponent,
+    outlet: 'pane',
+    resolve: {
+      message: MailViewResolve
     }
   }
 ];
@@ -27,11 +37,13 @@ export const ROUTES: Routes = [
   declarations: [
     MailFolderComponent,
     MailAppComponent,
-    MailItemComponent
+    MailItemComponent,
+    MailViewComponent
   ],
   providers: [
     MailService,
-    MailFolderResolve
+    MailFolderResolve,
+    MailViewResolve
   ],
   exports: [
     MailAppComponent
